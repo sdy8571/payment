@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+    <parent>
+        <groupId>com</groupId>
+        <artifactId>payment-system</artifactId>
+        <version>${revision}</version>
+    </parent>
+
+    <artifactId>payment-system-business</artifactId>
+
+    <dependencies>
+        <dependency>
+            <groupId>com</groupId>
+            <artifactId>payment-system-data</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>com</groupId>
+            <artifactId>com-spring-boot-starter-pay</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com</groupId>
+            <artifactId>com-spring-boot-starter-sequence</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com</groupId>
+            <artifactId>com-spring-boot-starter-mq</artifactId>
+        </dependency>
+        <!-- https://mvnrepository.com/artifact/org.projectlombok/lombok -->
+        <dependency>
+            <groupId>org.projectlombok</groupId>
+            <artifactId>lombok</artifactId>
+        </dependency>
+        <!--   map 对象映射放到最后     -->
+        <dependency>
+            <groupId>org.mapstruct</groupId>
+            <artifactId>mapstruct</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.mapstruct</groupId>
+            <artifactId>mapstruct-processor</artifactId>
+        </dependency>
+    </dependencies>
+
+</project>

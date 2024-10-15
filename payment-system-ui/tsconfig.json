@@ -1,0 +1,51 @@
+//{
+//  "files": [],
+//  "references": [
+//    { "path": "./tsconfig.app.json" },
+//    { "path": "./tsconfig.node.json" }
+//  ]
+//}
+{
+  "compilerOptions": {
+    "target": "ESNext",
+    "useDefineForClassFields": true,
+    "module": "ESNext",
+    "moduleResolution": "Node",
+    "strict": true,
+    "jsx": "preserve",
+    "sourceMap": true,
+    "resolveJsonModule": true,
+    "isolatedModules": true,
+    "esModuleInterop": true,
+    "lib": ["ESNext", "DOM"],
+    "skipLibCheck": true,
+    "allowJs": true,
+    "baseUrl": ".",
+    "paths": {
+      "@/*": [ "src/*" ]
+    },
+    "outDir": "target", // 请保留这个属性，防止tsconfig.json文件报错
+    "typeRoots": ["./node_modules/@types/", "./types"],
+    "types": [
+      "@intlify/unplugin-vue-i18n/types",
+      "vite/client",
+      "element-plus/global",
+      "@types/intro.js",
+      "@types/qrcode",
+      "vite-plugin-svg-icons/client",
+      "@form-create/element-ui/types"
+    ]
+  },
+  "include": [
+    "src",
+    "src/**/*",
+    "types/**/*.ts",
+    "types/**/*.tsx",
+    "types/**/*.vue",
+    "types/**/*.d.ts",
+    "src/types/auto-imports.d.ts",
+    "src/types/auto-components.d.ts",
+  ],
+  "exclude": ["dist", "target", "node_modules"],
+  "references": [{ "path": "./tsconfig.node.json" }]
+}

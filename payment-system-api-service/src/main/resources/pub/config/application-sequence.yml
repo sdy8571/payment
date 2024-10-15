@@ -1,0 +1,21 @@
+sequence:
+  available: true
+  sequenceConfigs:
+    - id: SerialNo
+      segmentConfigs:
+        - type: fixedString
+          props:
+            fixedString: 310000107
+        - type: dateString
+          props:
+            format: 'yyyyMMddHHmmss'
+        - type: dbNumberString
+          props:
+            id: 'SerialNo'
+            length: '6'
+            max: '999999'
+            step: '1000'
+            leftPadding: "0"
+        - type: randomString
+          props:
+            length: 3

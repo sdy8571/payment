@@ -1,0 +1,9 @@
+pay:
+  baffle: true
+logging:
+  config: classpath:config/logback.xml
+  level:
+    com.payment: info
+    com.com: info
+    org.springframework: info
+    com.baomidou.mybatisplus: debug

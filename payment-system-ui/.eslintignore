@@ -1,0 +1,8 @@
+node_modules
+dist
+*.md
+.vscode
+.idea
+/public
+.eslintrc.js
+src/assets

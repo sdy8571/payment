@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration>
+	<property name="APP_NAME" value="payment-system"/>
+	<!-- 日志文件存放路径 -->
+	<property name="LOGFILE_DIR" value="./logs"/>
+	<property name="PATTERN_DEFAULT" value="%d{yyyy-MM-dd HH:mm:ss.SSS} [%boldYellow(%thread)] %highlight(%-5level) %boldGreen(%logger{50}) - %msg%n"/>
+	<!-- 控制台输出 -->
+	<appender name="console" class="ch.qos.logback.core.ConsoleAppender">
+		<encoder>
+			<pattern>${PATTERN_DEFAULT}</pattern>
+		</encoder>
+	</appender>
+	<!-- 文件输出 -->
+	<appender name="file" class="ch.qos.logback.core.rolling.RollingFileAppender">
+		<encoder>
+			<pattern>${PATTERN_DEFAULT}</pattern>
+		</encoder>
+		<file>${LOGFILE_DIR}/${APP_NAME}.log</file>
+		<!-- 循环政策：基于时间创建日志文件 -->
+		<rollingPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedRollingPolicy">
+			<!-- 日志文件名格式 -->
+			<fileNamePattern>${LOGFILE_DIR}/${APP_NAME}.%d{yyyy-MM-dd}.%i.log.tar</fileNamePattern>
+			<!-- 日志最大的历史 30天 -->
+			<maxHistory>30</maxHistory>
+			<!--分隔的每个文件的大小-->
+			<maxFileSize>512MB</maxFileSize>
+		</rollingPolicy>
+	</appender>
+
+	<root level="info">
+		<appender-ref ref="console"/>
+	</root>
+	<root level="info">
+		<appender-ref ref="file"/>
+	</root>
+</configuration>

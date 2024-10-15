@@ -1,0 +1,7 @@
+spring:
+  redis:
+    host: 192.168.111.92
+    port: 6379
+    password: kHuegsSjwhG6
+    database: 0
+    timeout: 10000
