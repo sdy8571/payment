@@ -208,4 +208,9 @@ public class PayNotifyServiceImpl implements PayNotifyService {
         return JSONUtil.toBean(resp, Result.class);
     }
 
+    public static void main(String[] args) {
+        Map<String, String> map =  new HashMap<>();
+        map.put("abc", "abc");
+    }
+
 }
