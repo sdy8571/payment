@@ -1,8 +1,6 @@
 package com.payment.mq.consumer;
 
 import com.framework.mq.core.listener.AbstractRedissonDelayMessageListener;
-import com.payment.contants.enums.PayNotifyStatusEnum;
-import com.payment.data.entity.PayNotifyTaskEntity;
 import com.payment.mq.domain.PayOrderMessage;
 import com.payment.mq.producer.PayNotifyProducer;
 import com.payment.provider.PayNotifyProvider;
