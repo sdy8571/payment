@@ -98,7 +98,8 @@ CREATE TABLE `pay_refund` (
 DROP TABLE IF EXISTS `pay_channel_notify`;
 CREATE TABLE `pay_channel_notify` (
     `id` bigint NOT NULL AUTO_INCREMENT COMMENT '主键编号',
-    `channel` varchar(32) DEFAULT NULL COMMENT '渠道 wx-微信 ali-阿里',
+    `channel_id` bigint DEFAULT NULL COMMENT '渠道编号',
+    `channel` varchar(32) DEFAULT NULL COMMENT '渠道',
     `notify_id` varchar(64) DEFAULT NULL COMMENT '通知编号',
     `notify_type` int DEFAULT NULL COMMENT '通知类型 1-支付 2-退款',
     `notify_request_params` longtext DEFAULT NULL COMMENT '通知参数 param',

@@ -11,6 +11,6 @@ public interface PayNotifyChannelService {
 
     boolean checkRepeatChannelNotify(String notifyId);
 
-    void saveChannelNotifyRecord(Map<String, String> params, String body, String notifyId, String channel, Integer type);
+    void save(Map<String, String> params, String body, Long channelId, String channel, String notifyId, Integer type);
 
 }

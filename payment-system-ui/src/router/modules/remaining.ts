@@ -79,6 +79,52 @@ const remainingRouter = [
           noCache: false,
         }
       },
+    ]
+  },
+  {
+    path: '/pay',
+    component: '',
+    name: 'Pay',
+    meta: {
+      hidden: false,
+      title: '订单管理',
+      icon: 'List',
+      noCache: false,
+    },
+    children: [
+      {
+        path: 'order',
+        component: () => import('@/views/payment/order/index.vue'),
+        name: 'Order',
+        meta: {
+          hidden: false,
+          title: '订单列表',
+          noCache: false,
+        }
+      },
+      {
+        path: 'refund',
+        component: () => import('@/views/payment/refund/index.vue'),
+        name: 'Refund',
+        meta: {
+          hidden: false,
+          title: '退款列表',
+          noCache: false,
+        }
+      },
+    ]
+  },
+  {
+    path: '/notify',
+    component: '',
+    name: 'Notify',
+    meta: {
+      hidden: false,
+      title: '通知管理',
+      icon: 'ChatLineSquare',
+      noCache: false,
+    },
+    children: [
       {
         path: 'task',
         component: () => import('@/views/payment/task/index.vue'),

@@ -10,6 +10,7 @@ import lombok.Data;
 @Data
 public class GetPayOrderReq {
 
+    private Long id;
     /**
      * 流水号
      */

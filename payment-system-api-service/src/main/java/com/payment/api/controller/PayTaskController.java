@@ -2,8 +2,6 @@ package com.payment.api.controller;
 
 import com.framework.base.pojo.Result;
 import com.framework.mybatis.core.pojo.PageResult;
-import com.payment.data.entity.PayNotifyTaskEntity;
-import com.payment.data.mapper.PayNotifyTaskMapper;
 import com.payment.domain.param.PagePayTaskReq;
 import com.payment.domain.vo.PayTaskVo;
 import com.payment.service.PayTaskService;
@@ -25,18 +23,10 @@ public class PayTaskController {
 
     @Resource
     private PayTaskService payTaskService;
-    @Resource
-    private PayNotifyTaskMapper payNotifyTaskMapper;
 
     @PostMapping("/page")
     public Result<PageResult<PayTaskVo>> page(@RequestBody PagePayTaskReq req) {
         return Result.success(payTaskService.page(req));
-    }
-
-    @PostMapping("/mq")
-    public Result<PayNotifyTaskEntity> mq() {
-        PayNotifyTaskEntity task = payNotifyTaskMapper.selectById(5);
-        return Result.success(task);
     }
 
 }

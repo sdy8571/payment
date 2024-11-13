@@ -3,17 +3,13 @@ package com.payment.service.impl;
 import cn.hutool.core.date.DateUtil;
 import cn.hutool.json.JSONUtil;
 import com.framework.base.exception.util.ServiceExceptionUtil;
+import com.framework.mybatis.core.pojo.PageResult;
 import com.framework.pay.core.client.PayClient;
 import com.framework.pay.core.client.dto.refund.PayRefundRespDTO;
 import com.framework.pay.core.client.dto.refund.PayRefundUnifiedReqDTO;
 import com.framework.pay.core.enums.order.PayOrderStatusRespEnum;
 import com.framework.pay.core.enums.refund.PayRefundStatusRespEnum;
-import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang3.StringUtils;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 import com.payment.contants.PayErrorCodeConstants;
-import com.payment.contants.enums.PayNotifyChannelEnum;
 import com.payment.contants.enums.PayNotifyTypeEnum;
 import com.payment.convert.PayRefundConvert;
 import com.payment.data.entity.PayAppEntity;
@@ -22,14 +18,25 @@ import com.payment.data.entity.PayOrderEntity;
 import com.payment.data.entity.PayRefundEntity;
 import com.payment.data.mapper.PayRefundMapper;
 import com.payment.domain.param.GetPayRefundReq;
+import com.payment.domain.param.PagePayRefundReq;
 import com.payment.domain.param.PayRefundAppleReq;
 import com.payment.domain.param.PayRefundConfirmResp;
+import com.payment.domain.vo.PayBaseVo;
 import com.payment.domain.vo.PayRefundVo;
 import com.payment.service.*;
 import com.payment.utils.PaymentUtils;
+import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.CollectionUtils;
 
 import javax.annotation.Resource;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 /**
  * @author sdy
@@ -110,7 +117,7 @@ public class PayRefundServiceImpl implements PayRefundService {
         resp.setOutTradeNo(refund.getOutTradeNo());
         resp.setOutRefundNo(refund.getOutRefundNo());
         resp.setSerialNo(refund.getSerialNo());
-        resp.setStatus(getStatus(refund.getStatus(), refund.getNotifyStatus()));
+        resp.setStatus(PaymentUtils.getStatus(refund.getStatus(), refund.getNotifyStatus()));
         return resp;
     }
 
@@ -127,8 +134,6 @@ public class PayRefundServiceImpl implements PayRefundService {
             log.info("重复通知回调，直接退出");
             return "success";
         }
-        // 记录回调日志
-        payNotifyChannelService.saveChannelNotifyRecord(params, body, response.getChannelRefundNo(), PayNotifyChannelEnum.WX.name(), PayNotifyTypeEnum.REFUND.getType());
         // 处理退款订单
         PayRefundEntity payRefund = payRefundMapper.selectOne(PayRefundEntity::getOutRefundNo, response.getOutRefundNo());
         if (payRefund == null) {
@@ -145,26 +150,21 @@ public class PayRefundServiceImpl implements PayRefundService {
         payRefund.setRefundId(response.getChannelRefundNo());
         payRefundMapper.updateById(payRefund);
         // 异步处理回调业务系统
-        payNotifyService.createPayNotifyTask(PayNotifyTypeEnum.REFUND.getType(), payRefund.getId());
+        payNotifyService.saveRefund(PayNotifyTypeEnum.REFUND.getType(), payRefund.getId(), payRefund.getChannelId(),
+                payRefund.getOutTradeNo(), payRefund.getOutRefundNo(), payRefund.getNotifyUrl(), payRefund.getStatus(), payRefund.getNotifyStatus());
+        // 记录回调日志
+        payNotifyChannelService.save(params, body, payClient.getId(), payClient.getChannelName(), response.getChannelRefundNo(), PayNotifyTypeEnum.REFUND.getType());
         // 返回结果
         return "success";
     }
 
     @Override
-    public Integer getStatus(Integer status, Integer notifyStatus) {
-        if (PayRefundStatusRespEnum.isSuccess(status) && PayRefundStatusRespEnum.isSuccess(notifyStatus)) {
-            return PayRefundStatusRespEnum.SUCCESS.getStatus();
-        }
-        if (PayRefundStatusRespEnum.isFailure(status) || PayRefundStatusRespEnum.isFailure(notifyStatus)) {
-            return PayRefundStatusRespEnum.FAILURE.getStatus();
-        }
-        return PayRefundStatusRespEnum.WAITING.getStatus();
-    }
-
-    @Override
     public PayRefundVo getPayRefund(GetPayRefundReq req) {
         PayRefundEntity refund = null;
-        if (StringUtils.isNotBlank(req.getOutRefundNo())) {
+        if (req.getId() != null) {
+            refund = getById(req.getId());
+        }
+        if (refund == null && StringUtils.isNotBlank(req.getOutRefundNo())) {
             refund = payRefundMapper.selectOne(PayRefundEntity::getOutRefundNo, req.getOutRefundNo());
         }
         if (refund == null && StringUtils.isNotBlank(req.getRefundId())) {
@@ -182,10 +182,33 @@ public class PayRefundServiceImpl implements PayRefundService {
         if (refund == null) {
             return null;
         }
-        // 设置退款状态
-        PayRefundVo resp = PayRefundConvert.INSTANCES.convert(refund);
-        resp.setRefundStatus(getStatus(refund.getStatus(), refund.getNotifyStatus()));
-        return resp;
+        // 设置应用和渠道信息
+        Map<Long, PayBaseVo> map = payChannelService.getChannelMap(Arrays.asList(refund.getChannelId()));
+        // 返回结果
+        return PayRefundConvert.INSTANCES.convert2(refund, map);
+    }
+
+    @Override
+    public PageResult<PayRefundVo> page(PagePayRefundReq req) {
+        // 查询
+        List<Long> channleIds = null;
+        if (req.getAppId() != null) {
+            channleIds = payChannelService.getChannelIdByApp(req.getAppId());
+            if (CollectionUtils.isEmpty(channleIds)) {
+                return PageResult.empty();
+            }
+        }
+        // 查询订单信息
+        PageResult<PayRefundEntity> page = payRefundMapper.selectPage(req, channleIds, req.getChannelId(), req.getMerchantOrderNo(),
+                req.getMerchantRefundNo(), req.getTransactionId(), req.getRefundId(), req.getStatus(), req.getSuccessTime());
+        // 组装并返回结果
+        Map<Long, PayBaseVo> appChannelMap = new HashMap<>(6);
+        if (page.hasContent()) {
+            List<Long> ids = page.getList().stream().map(PayRefundEntity::getChannelId).distinct().collect(Collectors.toList());
+            appChannelMap = payChannelService.getChannelMap(ids);
+        }
+        // 返回结果
+        return PayRefundConvert.INSTANCES.convert(page, appChannelMap);
     }
 
     /************ 内部方法 ************/

@@ -5,6 +5,7 @@ import com.framework.pay.core.client.PayClient;
 import com.payment.data.entity.PayChannelEntity;
 import com.payment.domain.param.ModifyPayChannelReq;
 import com.payment.domain.param.PagePayChannelReq;
+import com.payment.domain.vo.PayBaseVo;
 import com.payment.domain.vo.PayChannelTypeVo;
 import com.payment.domain.vo.PayChannelVo;
 
@@ -32,9 +33,15 @@ public interface PayChannelService {
 
     List<PayChannelTypeVo> getTypeList();
 
+    List<PayChannelVo> getByApp(Long appId);
+
     void status(Long id);
 
     PayChannelEntity getByCode(String code, Long appId);
+
+    List<Long> getChannelIdByApp(Long appId);
+
+    Map<Long, PayBaseVo> getChannelMap(List<Long> channelIds);
 
     /**
      * 获得指定编号的支付客户端

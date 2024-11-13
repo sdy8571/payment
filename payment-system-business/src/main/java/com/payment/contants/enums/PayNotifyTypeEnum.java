@@ -4,6 +4,8 @@ import cn.hutool.core.util.ArrayUtil;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 
+import java.util.Objects;
+
 /**
  * 支付通知类型
  *
@@ -25,6 +27,15 @@ public enum PayNotifyTypeEnum {
      * 名字
      */
     private final String name;
+
+    /**
+     * 是否订单通知类型
+     * @param type 类型
+     * @return 返回结果
+     */
+    public static boolean isOrder(Integer type) {
+        return Objects.equals(ORDER.getType(), type);
+    }
 
     /**
      * 根据type获取name

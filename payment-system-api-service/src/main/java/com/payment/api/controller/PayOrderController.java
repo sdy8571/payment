@@ -2,14 +2,16 @@ package com.payment.api.controller;
 
 import com.framework.base.annotation.NotRepeatSubmit;
 import com.framework.base.pojo.Result;
-import org.apache.commons.lang3.StringUtils;
-import org.springframework.web.bind.annotation.*;
+import com.framework.mybatis.core.pojo.PageResult;
 import com.payment.domain.param.GetPayOrderReq;
+import com.payment.domain.param.PagePayOrderReq;
 import com.payment.domain.param.PayOrderUnifiedReq;
 import com.payment.domain.param.PayOrderUnifiedResp;
 import com.payment.domain.vo.PayOrderVo;
 import com.payment.interceptor.domain.RequestHeaderContext;
 import com.payment.service.PayOrderService;
+import org.apache.commons.lang3.StringUtils;
+import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.Resource;
 import javax.validation.Valid;
@@ -65,9 +67,19 @@ public class PayOrderController {
      * @param req 请求参数
      * @return 返回结果
      */
-    @GetMapping("/get")
+    @PostMapping("/get")
     public Result<PayOrderVo> getPayOrder(@RequestBody GetPayOrderReq req) {
         return Result.success(payOrderService.getPayOrder(req));
+    }
+
+    /**
+     * 查询订单分页信息
+     * @param req 请求参数
+     * @return 返回结果
+     */
+    @PostMapping("/page")
+    public Result<PageResult<PayOrderVo>> page(@RequestBody PagePayOrderReq req) {
+        return Result.success(payOrderService.page(req));
     }
 
 }

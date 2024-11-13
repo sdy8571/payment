@@ -1,6 +1,7 @@
 package com.payment.domain.vo;
 
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 
 import java.util.Date;
 
@@ -13,7 +14,8 @@ import java.util.Date;
  * @since 2024-04-10
  */
 @Data
-public class PayRefundVo {
+@EqualsAndHashCode(callSuper = true)
+public class PayRefundVo extends PayBaseVo {
 
   /**
    * 主键编号
@@ -23,6 +25,10 @@ public class PayRefundVo {
    * 交易流水号
    */
   private String serialNo;
+  /**
+   * 渠道编号
+   */
+  private Long channelId;
   /**
    * 外部交易单号
    */
@@ -43,18 +49,28 @@ public class PayRefundVo {
    * 订单支付金额
    */
   private Integer payPrice;
+  private String payPriceY;
   /**
    * 退款金额
    */
   private Integer refundPrice;
+  private String refundPriceY;
   /**
    * 退款原因
    */
   private String reason;
   /**
+   * 退款通知地址
+   */
+  private String notifyUrl;
+  /**
    * 成功时间
    */
   private Date successTime;
+  /**
+   * 通知时间
+   */
+  private Date notifyTime;
   /**
    * 退款状态
    */

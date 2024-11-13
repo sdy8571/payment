@@ -1,6 +1,5 @@
 package com.payment.mq.domain;
 
-import com.framework.mq.core.message.AbstractDelayTaskMessage;
 import com.payment.contants.enums.PayNotifyTypeEnum;
 import lombok.Data;
 import lombok.EqualsAndHashCode;

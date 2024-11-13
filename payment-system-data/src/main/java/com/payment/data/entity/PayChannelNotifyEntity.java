@@ -25,11 +25,15 @@ public class PayChannelNotifyEntity extends BaseEntity {
   @TableId(value = "id")
   private Long id;
   /**
-   * 渠道 wx-微信 ali-阿里
+   * 渠道编号
+   */
+  private Long channelId;
+  /**
+   * 渠道名称
    */
   private String channel;
   /**
-   * 通知编号
+   * 渠道通知编号
    */
   private String notifyId;
   /**

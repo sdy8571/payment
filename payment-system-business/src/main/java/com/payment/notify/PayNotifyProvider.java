@@ -1,4 +1,4 @@
-package com.payment.provider;
+package com.payment.notify;
 
 import cn.hutool.core.date.DateUtil;
 import cn.hutool.core.exceptions.ExceptionUtil;
@@ -14,6 +14,7 @@ import com.payment.mq.producer.PayNotifyProducer;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.Resource;
 import java.util.Date;
@@ -34,12 +35,14 @@ public class PayNotifyProvider {
     @Resource
     private PayNotifyProducer payNotifyProducer;
 
+    @Transactional(rollbackFor = Exception.class)
     public void onMessage(Long taskId) {
         // 查询任务
         PayNotifyTaskEntity task = getNotifyTask(taskId);
         if (task == null) {
             return;
         }
+        log.info("第【{}】次通知", task.getNotifyTimes());
         // 通知业务系统
         boolean bool = notify(task);
         if (bool) {
@@ -47,6 +50,7 @@ public class PayNotifyProvider {
             return;
         }
         // 通知失败，重新发送消息
+        log.info("通知失败，重新发送通知消息");
         payNotifyProducer.sendMsg(task);
     }
 
@@ -81,7 +85,6 @@ public class PayNotifyProvider {
         return task;
     }
 
-
     private Result<?> notifyInvoke(String url, String body) {
         // 调用业务系统
         log.info("通知业务系统 url:{}, request:{}", url, body);
@@ -91,12 +94,12 @@ public class PayNotifyProvider {
     }
 
     /**
-     //     * 处理并更新通知结果
-     //     * @param task 通知任务
-     //     * @param invokeResult 通知结果
-     //     * @param invokeException 通知异常
-     //     * @return 最终任务的状态
-     //     */
+     * 处理并更新通知结果
+     * @param task 通知任务
+     * @param invokeResult 通知结果
+     * @param invokeException 通知异常
+     * @return 最终任务的状态
+     */
     private Integer processNotifyResult(PayNotifyTaskEntity task, Result<?> invokeResult, Throwable invokeException) {
         // 通知次数
         Integer nextNotifyTimes = task.getNotifyTimes() + 1;

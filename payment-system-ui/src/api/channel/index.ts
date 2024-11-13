@@ -27,3 +27,7 @@ export const getTypeList = async () => {
 export const status = async (id: number) => {
   return await request.post({url: '/pay/channel/status/' + id})
 }
+
+export const getChannelList = async (appId: number) => {
+  return await request.get({url: '/pay/channel/list', params: {appId}})
+}

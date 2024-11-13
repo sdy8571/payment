@@ -1,23 +1,13 @@
 package com.payment.service.impl;
 
 import cn.hutool.core.date.DateUtil;
-import cn.hutool.core.lang.Assert;
-import cn.hutool.core.util.ObjectUtil;
-import cn.hutool.json.JSONUtil;
-import com.google.common.cache.CacheLoader;
-import com.google.common.cache.LoadingCache;
 import com.framework.base.constants.BaseConstants;
 import com.framework.base.exception.util.ServiceExceptionUtil;
 import com.framework.mybatis.core.pojo.PageResult;
 import com.framework.pay.core.client.PayClient;
-import com.framework.pay.core.client.PayClientConfig;
-import com.framework.pay.core.client.PayClientFactory;
+import com.framework.pay.core.client.cache.ChannelClientCache;
+import com.framework.pay.core.client.cache.ChannelPO;
 import com.framework.pay.core.enums.channel.PayChannelEnum;
-import com.framework.pay.utils.PayUtils;
-import lombok.Getter;
-import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang3.StringUtils;
-import org.springframework.stereotype.Service;
 import com.payment.contants.PayErrorCodeConstants;
 import com.payment.convert.PayChannelConvert;
 import com.payment.data.entity.PayAppEntity;
@@ -25,53 +15,44 @@ import com.payment.data.entity.PayChannelEntity;
 import com.payment.data.mapper.PayChannelMapper;
 import com.payment.domain.param.ModifyPayChannelReq;
 import com.payment.domain.param.PagePayChannelReq;
+import com.payment.domain.vo.PayBaseVo;
 import com.payment.domain.vo.PayChannelTypeVo;
 import com.payment.domain.vo.PayChannelVo;
 import com.payment.service.PayAppService;
 import com.payment.service.PayChannelService;
+import com.payment.utils.PaymentUtils;
+import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.CollectionUtils;
 
 import javax.annotation.Resource;
-import javax.validation.Validator;
-import java.time.Duration;
 import java.util.*;
 import java.util.stream.Collectors;
 
 /**
  * @author sdy
- * @description
+ * @description 需要继承 channelClientCache 实现本地缓存load方法
  * @date 2024/5/30
  */
 @Slf4j
 @Service
-public class PayChannelServiceImpl implements PayChannelService {
+public class PayChannelServiceImpl extends ChannelClientCache implements PayChannelService {
 
     @Resource
     private PayChannelMapper payChannelMapper;
     @Resource
     private PayAppService payAppService;
-    @Resource
-    private PayClientFactory payClientFactory;
-    @Resource
-    private Validator validator;
 
-    /**
-     * {@link PayClient} 缓存，通过它异步清空 smsClientFactory
-     */
-    @Getter
-    private final LoadingCache<Long, PayClient> clientCache = PayUtils.buildAsyncReloadingCache(Duration.ofSeconds(10L),
-            new CacheLoader<Long, PayClient>() {
-                @Override
-                public PayClient load(Long id) {
-                    // 查询，然后尝试清空
-                    PayChannelEntity channel = payChannelMapper.selectById(id);
-                    if (channel != null) {
-                        PayClientConfig config = parseConfig(channel.getCode(), channel.getConfig());
-                        payClientFactory.createOrUpdatePayClient(channel.getId(), channel.getCode(), config);
-                    }
-                    return payClientFactory.getPayClient(id);
-                }
-            });
+    @Override
+    protected ChannelPO loadChannel(Long id) {
+        PayChannelEntity channel = getById(id);
+        if (channel == null) {
+            return new ChannelPO();
+        }
+        return new ChannelPO(channel.getCode(), channel.getConfig());
+    }
 
     @Override
     public PageResult<PayChannelVo> page(PagePayChannelReq req) {
@@ -82,16 +63,11 @@ public class PayChannelServiceImpl implements PayChannelService {
 
     @Override
     public PayChannelVo detail(Long id) {
-        PayChannelVo vo = PayChannelConvert.INSTANCES.convert(getById(id));
+        PayChannelVo vo = PayChannelConvert.INSTANCES.convert1(getById(id));
         // 设置app名称
         PayAppEntity app = payAppService.getById(vo.getAppId());
         if (app != null) {
             vo.setAppName(app.getName());
-        }
-        // 设置 channelName
-        PayChannelEnum channel = PayChannelEnum.getByCode(vo.getCode());
-        if (channel != null) {
-            vo.setChannelName(PayChannelEnum.getByCode(vo.getCode()).getName());
         }
         // 返回结果
         return vo;
@@ -154,14 +130,39 @@ public class PayChannelServiceImpl implements PayChannelService {
     }
 
     @Override
+    public List<PayChannelVo> getByApp(Long appId) {
+        List<PayChannelEntity> list;
+        if (appId == null) {
+            list = payChannelMapper.selectList();
+        } else {
+            list = payChannelMapper.selectList(PayChannelEntity::getAppId, appId);
+        }
+        if (CollectionUtils.isEmpty(list)) {
+            return Collections.emptyList();
+        }
+        return PayChannelConvert.INSTANCES.convert(list);
+    }
+
+    @Override
+    @Transactional(rollbackFor = Exception.class)
     public void status(Long id) {
         PayChannelEntity check = getById(id);
         if (check == null) {
             throw ServiceExceptionUtil.exception(PayErrorCodeConstants.PAY_CHANNEL_NOT_FOUND);
         }
         if (BaseConstants.BASE_STATUS.isYes(check.getStatus())) {
+            // 当前状态为启用，执行停用
             check.setStatus(BaseConstants.BASE_STATUS.NO.getStatus());
         } else {
+            // 当前状态为停用，执行启用。
+            // 启用时，确保app对应渠道只有一个可用状态
+            // 停用应用渠道下所有配置
+            List<PayChannelEntity> channels = payChannelMapper.selectList(check.getAppId(), check.getCode());
+            if (!CollectionUtils.isEmpty(channels)) {
+                channels.forEach(c -> c.setStatus(BaseConstants.BASE_STATUS.NO.getStatus()));
+                payChannelMapper.updateBatch(channels);
+            }
+            // 启用当前渠道
             check.setStatus(BaseConstants.BASE_STATUS.YES.getStatus());
         }
         check.setUpdateTime(DateUtil.date());
@@ -182,13 +183,35 @@ public class PayChannelServiceImpl implements PayChannelService {
     }
 
     @Override
-    public PayClient getPayClient(Long id) {
-        PayClient payClient = clientCache.getUnchecked(id);
-        if (payClient == null) {
-            log.error("[notifyCallback][渠道编号({}) 找不到对应的支付客户端]", id);
-            throw ServiceExceptionUtil.exception(PayErrorCodeConstants.PAY_CHANNEL_NOT_FOUND);
+    public List<Long> getChannelIdByApp(Long appId) {
+        List<PayChannelEntity> list = payChannelMapper.selectList(PayChannelEntity::getAppId, appId);
+        if (CollectionUtils.isEmpty(list)) {
+            return Collections.emptyList();
         }
-        return payClient;
+        return list.stream().map(PayChannelEntity::getId).collect(Collectors.toList());
+    }
+
+    @Override
+    public Map<Long, PayBaseVo> getChannelMap(List<Long> channelIds) {
+        if (CollectionUtils.isEmpty(channelIds)) {
+            return Collections.emptyMap();
+        }
+        // 查询渠道列表
+        List<PayChannelEntity> channels = payChannelMapper.selectList(PayChannelEntity::getId, channelIds);
+        if (CollectionUtils.isEmpty(channels)) {
+            return Collections.emptyMap();
+        }
+        // 查询应用列表
+        Map<Long, String> appMaps = payAppService.getAllMap();
+        // 组装返回结果
+        Map<Long, PayBaseVo> result = new HashMap<>(6);
+        channels.forEach(c -> result.put(c.getId(), new PayBaseVo(appMaps.get(c.getAppId()), PaymentUtils.getChannelName(c.getCode()))));
+        return result;
+    }
+
+    @Override
+    public PayClient getPayClient(Long id) {
+        return  clientCache.getUnchecked(id);
     }
 
     @Override
@@ -219,22 +242,14 @@ public class PayChannelServiceImpl implements PayChannelService {
         if (channel != null) {
             if (id == null) {
                 // 新增
-                throw ServiceExceptionUtil.exception(PayErrorCodeConstants.PAY_CHANNEL_EXISTS, getPayChannelName(code));
+                throw ServiceExceptionUtil.exception(PayErrorCodeConstants.PAY_CHANNEL_EXISTS, PaymentUtils.getChannelName(code));
             } else {
                 // 修改
                 if (!channel.getId().equals(id)) {
-                    throw ServiceExceptionUtil.exception(PayErrorCodeConstants.PAY_CHANNEL_EXISTS, getPayChannelName(code));
+                    throw ServiceExceptionUtil.exception(PayErrorCodeConstants.PAY_CHANNEL_EXISTS, PaymentUtils.getChannelName(code));
                 }
             }
         }
-    }
-
-    private String getPayChannelName(String code) {
-        PayChannelEnum payChannelEnum = PayChannelEnum.getByCode(code);
-        if (payChannelEnum == null) {
-            throw ServiceExceptionUtil.exception(PayErrorCodeConstants.PAY_CHANNEL_NOT_FOUND);
-        }
-        return payChannelEnum.getName();
     }
 
     private PayChannelTypeVo genType(PayChannelEnum payChannelEnum) {
@@ -257,24 +272,5 @@ public class PayChannelServiceImpl implements PayChannelService {
         }
     }
 
-    /**
-     * 解析并校验配置
-     *
-     * @param code      渠道编码
-     * @param configStr 配置
-     * @return 支付配置
-     */
-    private PayClientConfig parseConfig(String code, String configStr) {
-        // 解析配置
-        Class<? extends PayClientConfig> payClass = PayChannelEnum.getByCode(code).getConfigClass();
-        if (ObjectUtil.isNull(payClass) || StringUtils.isBlank(configStr)) {
-            throw ServiceExceptionUtil.exception(PayErrorCodeConstants.PAY_CHANNEL_NOT_FOUND);
-        }
-        PayClientConfig config = JSONUtil.toBean(configStr, payClass);
-        Assert.notNull(config);
 
-        // 验证参数
-        config.validate(validator);
-        return config;
-    }
 }

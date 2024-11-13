@@ -8,6 +8,8 @@ import com.framework.mybatis.core.query.LambdaQueryWrapperX;
 import org.apache.ibatis.annotations.Mapper;
 import com.payment.data.entity.PayChannelEntity;
 
+import java.util.List;
+
 /**
  * <p>
  * 支付渠道 Mapper 接口
@@ -30,6 +32,12 @@ public interface PayChannelMapper extends BaseMapperX<PayChannelEntity> {
                 .eq(PayChannelEntity::getAppId, appId)
                 .eq(PayChannelEntity::getCode, code)
                 .eq(PayChannelEntity::getStatus, BaseConstants.BASE_STATUS.YES.getStatus()));
+    }
+
+    default List<PayChannelEntity> selectList(Long appId, String code) {
+        return selectList(new LambdaQueryWrapperX<PayChannelEntity>()
+                .eq(PayChannelEntity::getAppId, appId)
+                .eq(PayChannelEntity::getCode, code));
     }
 
 

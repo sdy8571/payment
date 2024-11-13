@@ -1,10 +1,9 @@
 package com.payment.mq.consumer;
 
+import cn.hutool.json.JSONUtil;
 import com.framework.mq.core.listener.AbstractRedissonDelayMessageListener;
-import com.payment.data.entity.PayNotifyTaskEntity;
 import com.payment.mq.domain.PayRefundMessage;
-import com.payment.mq.producer.PayNotifyProducer;
-import com.payment.provider.PayNotifyProvider;
+import com.payment.notify.PayNotifyProvider;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
@@ -25,7 +24,7 @@ public class PayRefundConsumer extends AbstractRedissonDelayMessageListener<PayR
     @Override
     protected void onMessage(PayRefundMessage message) {
         log.info("===========【处理退款消息】开始===========");
-        log.info("[onMessage][消息内容({})]", message);
+        log.info("[onMessage][消息内容({})]", JSONUtil.toJsonStr(message));
         payNotifyProvider.onMessage(message.getNotifyTaskId());
         log.info("===========【处理退款消息】结束===========");
     }

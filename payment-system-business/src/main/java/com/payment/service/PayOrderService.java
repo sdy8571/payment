@@ -1,7 +1,9 @@
 package com.payment.service;
 
+import com.framework.mybatis.core.pojo.PageResult;
 import com.payment.data.entity.PayOrderEntity;
 import com.payment.domain.param.GetPayOrderReq;
+import com.payment.domain.param.PagePayOrderReq;
 import com.payment.domain.param.PayOrderUnifiedReq;
 import com.payment.domain.param.PayOrderUnifiedResp;
 import com.payment.domain.vo.PayOrderVo;
@@ -24,5 +26,7 @@ public interface PayOrderService {
     String orderNotify(Long payChannelId, Map<String, String> params, String body);
 
     PayOrderVo getPayOrder(GetPayOrderReq req);
+
+    PageResult<PayOrderVo> page(PagePayOrderReq req);
 
 }

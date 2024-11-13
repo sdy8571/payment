@@ -31,11 +31,12 @@ public class PayNotifyChannelServiceImpl implements PayNotifyChannelService {
     }
 
     @Override
-    public void saveChannelNotifyRecord(Map<String, String> params, String body, String notifyId, String channel, Integer type) {
+    public void save(Map<String, String> params, String body, Long channelId, String channel, String notifyId, Integer type) {
         PayChannelNotifyEntity notify = new PayChannelNotifyEntity();
+        notify.setChannelId(channelId);
         notify.setChannel(channel);
-        notify.setNotifyType(type);
         notify.setNotifyId(notifyId);
+        notify.setNotifyType(type);
         notify.setNotifyRequestParams(JSONUtil.toJsonStr(params));
         notify.setNotifyRequest(body);
         notify.setNotifyResult("success");

@@ -27,12 +27,8 @@ public class PayNotifyProducer {
 
     @Async(AsyncConfig.NOTIFY_THREAD_POOL_TASK_EXECUTOR)
     public void sendMsg(PayNotifyTaskEntity task) {
-        AbstractPayNotifyMessage msg;
-        if (PayNotifyTypeEnum.ORDER.getType().equals(task.getType())) {
-            msg = new PayOrderMessage();
-        } else if (PayNotifyTypeEnum.REFUND.getType().equals(task.getType())) {
-            msg = new PayRefundMessage();
-        } else {
+        AbstractPayNotifyMessage msg = create(PayNotifyTypeEnum.getByType(task.getType()));
+        if (msg == null) {
             log.info("未匹配到通知消息类型直接返回");
             return;
         }
@@ -40,6 +36,20 @@ public class PayNotifyProducer {
         msg.setNotifyTaskId(task.getId());
         msg.setDelayTime(task.getNotifyFrequency().get(task.getNotifyTimes()));
         redissonDelayProducer.send(msg);
+        log.info("发送业务系统通知成功");
+    }
+
+    private AbstractPayNotifyMessage create(PayNotifyTypeEnum type) {
+        AbstractPayNotifyMessage msg = null;
+        switch (type) {
+            case ORDER: msg = new PayOrderMessage();
+                break;
+            case REFUND: msg = new PayRefundMessage();
+                break;
+            default:
+                break;
+        }
+        return msg;
     }
 
 }

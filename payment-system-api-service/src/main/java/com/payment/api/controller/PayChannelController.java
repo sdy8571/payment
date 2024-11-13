@@ -64,5 +64,10 @@ public class PayChannelController {
         return Result.success(true);
     }
 
+    @GetMapping("/list")
+    public Result<List<PayChannelVo>> getByApp(@RequestParam Long appId) {
+        return Result.success(payChannelService.getByApp(appId));
+    }
+
 }
 

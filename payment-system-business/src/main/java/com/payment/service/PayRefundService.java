@@ -1,7 +1,9 @@
 package com.payment.service;
 
+import com.framework.mybatis.core.pojo.PageResult;
 import com.payment.data.entity.PayRefundEntity;
 import com.payment.domain.param.GetPayRefundReq;
+import com.payment.domain.param.PagePayRefundReq;
 import com.payment.domain.param.PayRefundAppleReq;
 import com.payment.domain.param.PayRefundConfirmResp;
 import com.payment.domain.vo.PayRefundVo;
@@ -23,8 +25,8 @@ public interface PayRefundService {
 
     String refundNotify(Long payChannelId, Map<String, String> params, String body);
 
-    Integer getStatus(Integer status, Integer notifyStatus);
-
     PayRefundVo getPayRefund(GetPayRefundReq req);
+
+    PageResult<PayRefundVo> page(PagePayRefundReq req);
 
 }

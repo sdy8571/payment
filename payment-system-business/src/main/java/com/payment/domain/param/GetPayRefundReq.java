@@ -10,6 +10,7 @@ import lombok.Data;
 @Data
 public class GetPayRefundReq {
 
+    private Long id;
     /**
      * 交易流水号
      */

@@ -1,14 +1,16 @@
 package com.payment.convert;
 
 import com.framework.mybatis.core.pojo.PageResult;
-import com.framework.pay.core.enums.channel.PayChannelEnum;
-import org.mapstruct.Mapper;
-import org.mapstruct.factory.Mappers;
 import com.payment.data.entity.PayChannelEntity;
 import com.payment.domain.param.ModifyPayChannelReq;
 import com.payment.domain.vo.PayChannelVo;
+import com.payment.utils.PaymentUtils;
+import org.mapstruct.Mapper;
+import org.mapstruct.factory.Mappers;
 import org.springframework.util.CollectionUtils;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -25,6 +27,13 @@ public interface PayChannelConvert {
 
     PayChannelVo convert(PayChannelEntity bean);
 
+    default PayChannelVo convert1(PayChannelEntity bean) {
+        PayChannelVo vo = convert(bean);
+        // 设置 channelName
+        vo.setChannelName(PaymentUtils.getChannelName(vo.getCode()));
+        return vo;
+    }
+
     PayChannelEntity convert(ModifyPayChannelReq req);
 
     default PageResult<PayChannelVo> convert(PageResult<PayChannelEntity> page, Map<Long, String> map) {
@@ -37,13 +46,16 @@ public interface PayChannelConvert {
                     r.setAppName(map.get(r.getAppId()));
                 }
                 // 设置 channelName
-                PayChannelEnum channel = PayChannelEnum.getByCode(r.getCode());
-                if (channel != null) {
-                    r.setChannelName(PayChannelEnum.getByCode(r.getCode()).getName());
-                }
+                r.setChannelName(PaymentUtils.getChannelName(r.getCode()));
             });
         }
         // 设置渠道名称
+        return result;
+    }
+
+    default List<PayChannelVo> convert(List<PayChannelEntity> lists) {
+        List<PayChannelVo> result = new ArrayList<>();
+        lists.forEach(r -> result.add(convert1(r)));
         return result;
     }
 

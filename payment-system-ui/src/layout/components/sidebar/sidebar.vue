@@ -18,7 +18,7 @@ const activeMenu = computed(() => {
 </script>
 
 <template>
-    <el-menu router :defaultActive="activeMenu" @select="handleSelect">
+    <el-menu router :defaultActive="activeMenu" @select="handleSelect" unique-opened>
       <el-scrollbar height="100vh" width="200px">
         <sidebar-item :router-list="routerList"/>
       </el-scrollbar>
