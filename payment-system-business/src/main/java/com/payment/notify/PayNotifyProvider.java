@@ -4,7 +4,7 @@ import cn.hutool.core.date.DateUtil;
 import cn.hutool.core.exceptions.ExceptionUtil;
 import cn.hutool.http.HttpUtil;
 import cn.hutool.json.JSONUtil;
-import com.framework.base.pojo.Result;
+import com.framework.common.pojo.Result;
 import com.payment.contants.enums.PayNotifyStatusEnum;
 import com.payment.data.entity.PayNotifyLogEntity;
 import com.payment.data.entity.PayNotifyTaskEntity;

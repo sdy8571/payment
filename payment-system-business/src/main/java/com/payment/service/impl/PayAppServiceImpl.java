@@ -1,7 +1,7 @@
 package com.payment.service.impl;
 
-import com.framework.base.constants.BaseConstants;
-import com.framework.base.exception.util.ServiceExceptionUtil;
+import com.framework.common.constatnts.BaseConstants;
+import com.framework.common.exception.util.ServiceExceptionUtil;
 import com.framework.mybatis.core.pojo.PageResult;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;

@@ -1,7 +1,7 @@
 package com.payment.api.controller;
 
 import cn.hutool.json.JSONUtil;
-import com.framework.base.pojo.Result;
+import com.framework.common.pojo.Result;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.*;
 

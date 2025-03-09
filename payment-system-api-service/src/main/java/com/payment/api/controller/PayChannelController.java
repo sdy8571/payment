@@ -1,6 +1,6 @@
 package com.payment.api.controller;
 
-import com.framework.base.pojo.Result;
+import com.framework.common.pojo.Result;
 import com.framework.mybatis.core.pojo.PageResult;
 import org.springframework.web.bind.annotation.*;
 import com.payment.domain.param.ModifyPayChannelReq;

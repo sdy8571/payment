@@ -1,6 +1,6 @@
 package com.payment.data.mapper;
 
-import com.framework.base.constants.BaseConstants;
+import com.framework.common.constatnts.BaseConstants;
 import com.framework.mybatis.core.mapper.BaseMapperX;
 import com.framework.mybatis.core.pojo.PageParam;
 import com.framework.mybatis.core.pojo.PageResult;

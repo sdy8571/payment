@@ -1,10 +1,10 @@
 package com.payment.api.controller;
 
-import com.framework.base.pojo.Result;
+import com.framework.common.pojo.Result;
+import com.payment.service.PaySerialService;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
-import com.payment.service.PaySerialService;
 
 import javax.annotation.Resource;
 

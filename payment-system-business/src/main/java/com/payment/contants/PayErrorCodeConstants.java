@@ -1,6 +1,6 @@
 package com.payment.contants;
 
-import com.framework.base.exception.ErrorCode;
+import com.framework.common.pojo.ErrorCode;
 
 /**
  * @author shen_dy@halcyonz.com

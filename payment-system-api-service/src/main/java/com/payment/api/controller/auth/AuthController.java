@@ -1,7 +1,7 @@
 package com.payment.api.controller.auth;
 
 import cn.hutool.core.lang.UUID;
-import com.framework.base.pojo.Result;
+import com.framework.common.pojo.Result;
 import com.payment.api.controller.auth.domain.LoginInfo;
 import org.springframework.web.bind.annotation.*;
 

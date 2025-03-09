@@ -1,7 +1,7 @@
 package com.payment.api.controller;
 
 import com.framework.base.annotation.NotRepeatSubmit;
-import com.framework.base.pojo.Result;
+import com.framework.common.pojo.Result;
 import com.framework.mybatis.core.pojo.PageResult;
 import com.payment.domain.param.GetPayRefundReq;
 import com.payment.domain.param.PagePayRefundReq;

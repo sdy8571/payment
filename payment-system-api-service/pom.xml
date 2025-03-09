@@ -59,6 +59,18 @@
             <groupId>com.zdy.boot</groupId>
             <artifactId>com-spring-boot-starter-encryptable</artifactId>
         </dependency>
+
+        <dependency>
+            <groupId>com.zdy.boot</groupId>
+            <artifactId>com-spring-boot-starter-socket</artifactId>
+        </dependency>
+
+        <!-- Test 测试相关 -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-test</artifactId>
+            <scope>test</scope>
+        </dependency>
     </dependencies>
     <!--  build  -->
     <build>
@@ -109,20 +121,26 @@
                             <goal>copy-resources</goal>
                         </goals>
                         <configuration>
-                            <outputDirectory>${project.build.directory}</outputDirectory>
+                            <outputDirectory>${project.build.directory}/abc</outputDirectory>
                             <resources>
                                 <resource>
                                     <!-- 文件地址 -->
-                                    <directory>${basedir}/src/main/shell/pub</directory>
+                                    <directory>src/main/shell/pub</directory>
                                     <includes>
                                         <include>*.sh</include>
                                     </includes>
                                 </resource>
                                 <resource>
                                     <!-- 文件地址 -->
-                                    <directory>${basedir}/src/main/shell/${env}</directory>
+                                    <directory>src/main/shell/${env}</directory>
                                     <includes>
                                         <include>*.sh</include>
+                                    </includes>
+                                </resource>
+                                <resource>
+                                    <directory>src/main/resources</directory>
+                                    <includes>
+                                        <include>*.yml</include>
                                     </includes>
                                 </resource>
                             </resources>
